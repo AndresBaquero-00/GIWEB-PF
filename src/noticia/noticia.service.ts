@@ -8,13 +8,34 @@ const apiKey = '25ac0238d8bf4f58a648cbb1df6b43e5';
 export class NoticiaService {
   constructor( private http: HttpService ){}
 
-  getEverything( q: string, page: number ){
-    return this.obtener<TopLevel>( `${ url }everything?q=${ q }&page=${ page }&apiKey=${ apiKey }` );
+  async getEverything( q: string, author: string, source: string, page: number ){
+    const top = await this.obtener<TopLevel>( `${ url }everything?q=${ q }&page=${ page }&apiKey=${ apiKey }` );
+    const noticias = top.articles.map( noticia => {
+      if( !noticia.author ){
+        noticia.author = 'Pepita Perez';
+        return noticia;
+      }
+      if(noticia.author == author)
+          return noticia;
+      
+      if( !noticia.source.name || !noticia.source.id ){
+          noticia.source.id = 'Sacado de cualquier lugar del mundo'
+          noticia.source.name = 'Sacado de cualquier lugar del mundo'
+          return noticia;
+      }
+      if( noticia.source.name == source )
+          return noticia
+    });
+
+    if( noticias.length === 0 )
+      return top.articles;
+
+    return noticias;
   }
 
   private obtener<T>( query: string ): Promise<T>{
     return new Promise( resolve => {
-      this.http.get( query ).subscribe( data => {
+      this.http.get<T>( query ).subscribe( (data) => {
         resolve( data.data );
       });
     });

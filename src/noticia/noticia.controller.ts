@@ -23,34 +23,15 @@ export class NoticiaController {
     })             
     @Get('/about')
     async getEverything( @Query('q') q: string, @Query('author') author: string, @Query('source') source: string ){
-        const filtro: Array<Article> = [];
-        let noticias: TopLevel;
+        const noticias: Array<Article> = [];
 
         for(let i = 1; i <= 5; i++){
-            noticias = await this.noticiaService.getEverything(q, i);
-            filtro.push(...noticias.articles.filter( noticia => {
-                if( !noticia.author ){
-                    noticia.author = 'Pepita Perez';
-                    return noticia;
-                }else if(noticia.author == author)
-                    return noticia;
-                
-                if( !noticia.source.name || !noticia.source.id ){
-                    noticia.source.id = 'Sacado de cualquier lugar del mundo'
-                    noticia.source.name = 'Sacado de cualquier lugar del mundo'
-                    return noticia;
-                }else if( noticia.source.name == source )
-                    return noticia
-            }));
+            const n = await this.noticiaService.getEverything(q, author, source, i);
+            noticias.push( ...n )
         }
 
-        this.guardar( filtro );
-
-        if( filtro.length === 0 ){
-            return noticias
-        }
-
-        return filtro;
+        this.guardar( noticias );
+        return noticias;
     }
 
     async guardar( noticia: Article[] ){
